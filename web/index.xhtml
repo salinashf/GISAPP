@@ -1,0 +1,105 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://xmlns.jcp.org/jsf/core">
+    <h:head>
+        <title>Registrar Puntos Mapa</title>
+    </h:head>
+    <h:body>
+        <p:growl id="messages" showDetail="true" />
+        <img src="http://biblioteca.uisrael.edu.ec/images/logo.png"  width="200" height="60"  />
+        <img src="http://www3.gobiernodecanarias.org/medusa/ecoblog/mmormarf/files/2014/09/gifs-animados-nombre-bienvenido-firma-animada-0142.gif"  width="300" height="60" hspace="380" vspace="0"  />
+        <h:form  id ="frmMapa">
+
+            <p:gmap id="gmap" center="-0.9999991,-78.477079"  zoom="7" type="ROADMAP" style="width:100%;height:550px"
+                    model="#{ctrlMarcador.emptyModel}" onPointClick="handlePointClick(event);" widgetVar="map"  >
+                <p:ajax event="markerDrag"  listener="#{ctrlMarcador.onMarkerDrag}" update=":messages" /> 
+                <p:ajax event="overlaySelect" listener="#{ctrlMarcador.onMarkerSelect}"   />
+                <p:gmapInfoWindow id="infoWindowCon" >
+                    <p:outputPanel style="text-align: center; display: block; margin: auto">
+                        <p:panelGrid columns="2" >
+                            <h:outputText value="Punto:"  />
+                            <h:outputText id="idTitle" value=" #{ctrlMarcador.marcadorActual.title} "  />
+                            <h:outputText value="Punto Nuevo:"  />
+                            <h:inputText  id="idTitleNw" value=" #{ctrlMarcador.titleNuevo}"  />
+                            
+                            <h:outputText value="Latitud:"  />
+                            <h:outputText id="idLat" value=" #{ctrlMarcador.marcadorActual.latlng.lat}"  />
+                            <h:outputText value="Longitud:"  />
+                            <h:outputText id="idLng" value=" #{ctrlMarcador.marcadorActual.latlng.lng}"  />                         
+                            <p:commandLink id="ajax"   update="gmap" actionListener="#{ctrlMarcador.removerMarcador}" oncomplete="markerRemoveComplete()">
+                                <h:outputText value="Eliminar Punto " />
+                            </p:commandLink>
+                            
+                            <p:commandLink id="ajaxEd"  ajax="true" update="gmap" actionListener="#{ctrlMarcador.cambiarMarcador}" oncomplete="markerRemoveComplete()">
+                                <h:outputText value="Cambiar Titulo" />
+                            </p:commandLink>  
+                            
+                            
+                        </p:panelGrid>
+                    </p:outputPanel>
+                </p:gmapInfoWindow>
+
+            </p:gmap>
+        </h:form>
+        <p:dialog widgetVar="dlg" showEffect="favAnimal"  header="Ingrese nuevo punto">
+            <h:form prependId="false">
+                <h:panelGrid columns="2">
+                    <h:outputLabel for="title" value="NOMBRE:" />
+                    <p:inputText id="title" value="#{ctrlMarcador.title}" />
+
+                    <f:facet name="footer">
+                        <h:outputLabel value="Latitud:" />
+                        <p:inputText id="lat" value="#{ctrlMarcador.lat}"  />
+                        <h:outputLabel value="Longitud:" />
+                        <p:inputText id="lng" value="#{ctrlMarcador.lng}" />
+                        <p:commandButton value="Insertar" actionListener="#{ctrlMarcador.addMarker}" update=":messages" oncomplete="markerAddComplete()" />
+                        <p:commandButton value="Cancelar" onclick="return cancel()" />
+                    </f:facet>
+
+                </h:panelGrid>
+            </h:form>
+        </p:dialog>
+        <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDVvfNY7nucLpK0BriRaCGT0YSAtf2LwcM" type="text/javascript"></script>
+        <script type="text/javascript">
+                                        var currentMarker = null;
+
+                                        function handlePointClick(event) {
+                                            if (currentMarker === null) {
+                                                document.getElementById('lat').value = event.latLng.lat();
+                                                document.getElementById('lng').value = event.latLng.lng();
+
+                                                currentMarker = new google.maps.Marker({
+                                                    position: new google.maps.LatLng(event.latLng.lat(), event.latLng.lng())
+                                                });
+
+                                                PF('map').addOverlay(currentMarker);
+
+                                                PF('dlg').show();
+                                            }
+                                        }
+                                        function markerAddComplete() {
+                                            var title = document.getElementById('title');
+                                            currentMarker.setTitle(title.value);
+                                            title.value = "";
+
+                                            currentMarker = null;
+                                            PF('dlg').hide();
+                                            $("#frmMapa").submit();
+                                        }
+                                        function markerRemoveComplete() {
+                                            $("#frmMapa").submit();
+                                        }
+                                        function cancel() {
+                                            PF('dlg').hide();
+                                            currentMarker.setMap(null);
+                                            currentMarker = null;
+
+                                            return false;
+                                        }
+        </script>
+    </h:body>
+</html>
+
